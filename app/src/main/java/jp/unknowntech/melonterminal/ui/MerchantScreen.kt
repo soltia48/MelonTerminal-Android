@@ -46,9 +46,11 @@ fun MerchantScreen(vm: TerminalViewModel, onClose: () -> Unit) {
         load = vm.fetchMerchant()
     }
 
-    Column(Modifier
-        .fillMaxSize()
-        .safeDrawingPadding()) {
+    Column(
+        Modifier
+            .fillMaxSize()
+            .safeDrawingPadding()
+    ) {
         Row(
             Modifier
                 .fillMaxWidth()
@@ -131,9 +133,11 @@ private fun LoadedBody(m: MerchantView, onRefresh: () -> Unit) {
             shape = RoundedCornerShape(16.dp),
             color = MaterialTheme.colorScheme.surfaceVariant
         ) {
-            Column(Modifier
-                .fillMaxWidth()
-                .padding(16.dp)) {
+            Column(
+                Modifier
+                    .fillMaxWidth()
+                    .padding(16.dp)
+            ) {
                 Text("加盟店", fontWeight = FontWeight.Bold, fontSize = 16.sp)
                 Spacer(Modifier.height(8.dp))
                 InfoRow("コード", m.code)
@@ -171,9 +175,11 @@ private fun Stat(
         shape = RoundedCornerShape(16.dp),
         color = MaterialTheme.colorScheme.secondaryContainer
     ) {
-        Column(Modifier
-            .fillMaxWidth()
-            .padding(16.dp)) {
+        Column(
+            Modifier
+                .fillMaxWidth()
+                .padding(16.dp)
+        ) {
             Text(label, color = MaterialTheme.colorScheme.onSecondaryContainer, fontSize = 13.sp)
             Spacer(Modifier.height(4.dp))
             Text(
