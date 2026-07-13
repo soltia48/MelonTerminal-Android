@@ -21,10 +21,32 @@ android {
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
 
+    signingConfigs {
+        // Release keystore supplied by CI (the Release workflow decodes it and
+        // exports these env vars). Populated only when KEYSTORE_FILE is present.
+        create("release") {
+            val storePath = System.getenv("KEYSTORE_FILE")
+            if (storePath != null) {
+                storeFile = file(storePath)
+                storePassword = System.getenv("KEYSTORE_PASSWORD")
+                keyAlias = System.getenv("KEY_ALIAS")
+                keyPassword = System.getenv("KEY_PASSWORD")
+            }
+        }
+    }
+
     buildTypes {
         release {
             optimization {
                 enable = false
+            }
+            // A release APK MUST be signed to be installable. Use the release
+            // keystore when CI provides one (KEYSTORE_FILE), otherwise fall back
+            // to the debug key so even a locally-built release APK still installs.
+            signingConfig = if (System.getenv("KEYSTORE_FILE") != null) {
+                signingConfigs.getByName("release")
+            } else {
+                signingConfigs.getByName("debug")
             }
         }
     }

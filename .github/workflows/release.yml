@@ -54,12 +54,27 @@ jobs:
           KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
         run: ./gradlew assembleRelease
 
+      - name: Verify the APK is signed
+        run: |
+          apksigner="$(ls "$ANDROID_HOME"/build-tools/*/apksigner | sort -V | tail -n 1)"
+          apk="$(ls app/build/outputs/apk/release/*.apk | grep -v -- '-unsigned' | head -n 1)"
+          if [ -z "$apk" ]; then
+            echo "::error::No signed release APK was produced (only an unsigned APK)."
+            exit 1
+          fi
+          "$apksigner" verify --verbose "$apk" || {
+            echo "::error::Release APK failed signature verification — it would not install."
+            exit 1
+          }
+          echo "Signature OK: $apk"
+
       - name: Stage APK with version name
         id: stage
         run: |
           version="${GITHUB_REF_NAME#v}"
           mkdir -p release-artifacts
-          src="$(ls app/build/outputs/apk/release/*.apk | head -n 1)"
+          # Never publish the unsigned APK.
+          src="$(ls app/build/outputs/apk/release/*.apk | grep -v -- '-unsigned' | head -n 1)"
           dest="release-artifacts/MelonTerminal-${version}.apk"
           cp "$src" "$dest"
           echo "apk=$dest" >> "$GITHUB_OUTPUT"
