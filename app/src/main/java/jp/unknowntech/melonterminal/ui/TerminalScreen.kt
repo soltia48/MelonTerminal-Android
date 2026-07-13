@@ -3,7 +3,9 @@
 package jp.unknowntech.melonterminal.ui
 
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
+import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -260,10 +262,12 @@ private fun AmountArea(state: UiState, modifier: Modifier = Modifier) {
     }
 }
 
+@OptIn(ExperimentalFoundationApi::class)
 @Composable
 private fun Keypad(onKey: (String) -> Unit) {
     // Calculator/numpad layout (7-8-9 on top), matching the desktop kiosk.
-    val keys = listOf("7", "8", "9", "4", "5", "6", "1", "2", "3", "C", "0", "<")
+    // Bottom row: 0, 00, backspace (long-press backspace clears the whole amount).
+    val keys = listOf("7", "8", "9", "4", "5", "6", "1", "2", "3", "0", "00", "<")
     Column(
         Modifier
             .fillMaxWidth()
@@ -274,17 +278,20 @@ private fun Keypad(onKey: (String) -> Unit) {
             Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                 row.forEach { key ->
                     Surface(
-                        onClick = { onKey(key) },
                         shape = RoundedCornerShape(14.dp),
                         color = MaterialTheme.colorScheme.surfaceVariant,
                         modifier = Modifier
                             .weight(1f)
-                            .height(64.dp),
+                            .height(64.dp)
+                            .combinedClickable(
+                                onClick = { onKey(key) },
+                                onLongClick = { if (key == "<") onKey("C") },
+                            ),
                     ) {
                         Box(contentAlignment = Alignment.Center) {
                             Text(
                                 if (key == "<") "⌫" else key,
-                                fontSize = if (key == "C" || key == "<") 22.sp else 26.sp,
+                                fontSize = if (key == "<") 22.sp else 26.sp,
                                 fontWeight = FontWeight.SemiBold,
                             )
                         }
