@@ -64,11 +64,14 @@ data class UiState(
     /** For pay/top-up only: the operator pressed 支払う/チャージする, so a tap is now
      *  accepted. Guards against an accidental tap charging a card. */
     val armed: Boolean = false,
+    /** Optional free-text note the merchant attaches to a payment. */
+    val memo: String = "",
 ) {
     val amountValue: Long get() = amount.toLongOrNull() ?: 0L
 }
 
 private const val MAX_AMOUNT_DIGITS = 7 // ¥9,999,999
+private const val MAX_MEMO_LEN = 200
 
 class TerminalViewModel(app: Application) : AndroidViewModel(app) {
     private val settings = Settings(app)
@@ -90,7 +93,9 @@ class TerminalViewModel(app: Application) : AndroidViewModel(app) {
 
     // ----- UI events -----
 
-    fun setOp(op: Op) = _state.update { it.copy(op = op, amount = "", armed = false) }
+    fun setOp(op: Op) = _state.update { it.copy(op = op, amount = "", armed = false, memo = "") }
+
+    fun setMemo(memo: String) = _state.update { it.copy(memo = memo.take(MAX_MEMO_LEN)) }
 
     fun pressKey(key: String) = _state.update { st ->
         if (!st.op.needsAmount) return@update st
@@ -110,7 +115,8 @@ class TerminalViewModel(app: Application) : AndroidViewModel(app) {
 
     fun disarm() = _state.update { it.copy(armed = false) }
 
-    fun dismissSheet() = _state.update { it.copy(sheet = Sheet.None, amount = "", armed = false) }
+    fun dismissSheet() =
+        _state.update { it.copy(sheet = Sheet.None, amount = "", armed = false, memo = "") }
 
     fun setNfcState(nfc: NfcState) = _state.update { it.copy(nfc = nfc) }
 
@@ -209,12 +215,13 @@ class TerminalViewModel(app: Application) : AndroidViewModel(app) {
         _state.update { it.copy(busy = true, armed = false, sheet = Sheet.Processing("処理中…")) }
         val op = s.op
         val amount = s.amountValue
+        val note = s.memo.trim().ifBlank { null }
         viewModelScope.launch(Dispatchers.IO) {
             try {
                 val sheet = runCatching {
                     val codes = systemCodes(client)
                     val auth = CardFlow.authenticate(nfcF, client, codes)
-                    runOperation(op, amount, client, auth)
+                    runOperation(op, amount, note, client, auth)
                 }.getOrElse { Sheet.Failed(classify(it)) }
                 _state.update { it.copy(busy = false, sheet = sheet) }
             } finally {
@@ -230,6 +237,7 @@ class TerminalViewModel(app: Application) : AndroidViewModel(app) {
     private suspend fun runOperation(
         op: Op,
         amount: Long,
+        note: String?,
         client: MelonClient,
         auth: AuthOutcome,
     ): Sheet = when (op) {
@@ -239,7 +247,12 @@ class TerminalViewModel(app: Application) : AndroidViewModel(app) {
             auth.accountId
         )
 
-        Op.PAY -> Sheet.Done(op, OpResult.Pay(client.pay(auth.sessionId, amount)), auth.accountId)
+        Op.PAY -> Sheet.Done(
+            op,
+            OpResult.Pay(client.pay(auth.sessionId, amount, note)),
+            auth.accountId
+        )
+
         Op.TOPUP -> Sheet.Done(
             op,
             OpResult.Topup(client.topup(auth.sessionId, amount)),

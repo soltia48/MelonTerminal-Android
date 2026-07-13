@@ -25,6 +25,7 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
+import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -66,13 +67,29 @@ fun TerminalScreen(vm: TerminalViewModel) {
         return
     }
 
-    Column(Modifier
-        .fillMaxSize()
-        .safeDrawingPadding()) {
+    Column(
+        Modifier
+            .fillMaxSize()
+            .safeDrawingPadding()
+    ) {
         Header(onMerchant = { showMerchant = true }, onSettings = { showSettings = true })
         if (state.nfc != NfcState.ENABLED) NfcBanner(state.nfc)
         OpTabs(state.op) { vm.setOp(it) }
         AmountArea(state, Modifier.weight(1f))
+        // A note is only meaningful on a payment. Keep it ABOVE the keypad: the soft
+        // keyboard rises over the keypad, so a field below it would be hidden — placing
+        // it here lets the weighted amount area collapse and float the field into view.
+        if (state.op == Op.PAY) {
+            OutlinedTextField(
+                value = state.memo,
+                onValueChange = vm::setMemo,
+                label = { Text("メモ(任意)") },
+                singleLine = true,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 12.dp, vertical = 4.dp),
+            )
+        }
         if (state.op.needsAmount) {
             Keypad(onKey = vm::pressKey)
             // Pay/top-up require this explicit confirm before a card tap is accepted.

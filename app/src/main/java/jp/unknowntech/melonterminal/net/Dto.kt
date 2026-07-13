@@ -51,7 +51,7 @@ data class MutualAuthResp(
 data class SessionReq(val session_id: String)
 
 @Serializable
-data class AmountReq(val session_id: String, val amount: Long)
+data class AmountReq(val session_id: String, val amount: Long, val note: String? = null)
 
 @Serializable
 data class RefundReq(val payment_id: String, val amount: Long? = null)
@@ -110,6 +110,19 @@ data class MerchantView(
     val fee_bps: Int,
     val credit_limit: Long,
     val collected: Long,
+    val created_at: String,
+    /** The store this terminal's API key is scoped to (null for a legacy key). */
+    val store: StoreView? = null,
+)
+
+@Serializable
+data class StoreView(
+    val id: String,
+    val merchant_id: String,
+    val code: String,
+    val name: String,
+    val status: String,
+    val is_default: Boolean = false,
     val created_at: String,
 )
 

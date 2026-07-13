@@ -76,10 +76,10 @@ class MelonClient(
             idempotencyKey = newKey(),
         )
 
-    suspend fun pay(sessionId: String, amount: Long): PayResp =
+    suspend fun pay(sessionId: String, amount: Long, note: String? = null): PayResp =
         post(
             "/v1/payments",
-            AmountReq(sessionId, amount),
+            AmountReq(sessionId, amount, note),
             AmountReq.serializer(),
             PayResp.serializer(),
             idempotencyKey = newKey(),

@@ -58,7 +58,7 @@ fun MerchantScreen(vm: TerminalViewModel, onClose: () -> Unit) {
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically,
         ) {
-            Text("加盟店情報", fontWeight = FontWeight.Bold, fontSize = 18.sp)
+            Text("加盟店・店舗情報", fontWeight = FontWeight.Bold, fontSize = 18.sp)
             TextButton(onClick = onClose) { Text("閉じる") }
         }
 
@@ -127,6 +127,28 @@ private fun LoadedBody(m: MerchantView, onRefresh: () -> Unit) {
             yen(m.collected + m.credit_limit),
             negative = m.collected + m.credit_limit < 0,
         )
+
+        // The store this terminal (its API key) is scoped to.
+        m.store?.let { s ->
+            Spacer(Modifier.height(20.dp))
+            Surface(
+                shape = RoundedCornerShape(16.dp),
+                color = MaterialTheme.colorScheme.surfaceVariant,
+            ) {
+                Column(
+                    Modifier
+                        .fillMaxWidth()
+                        .padding(16.dp)
+                ) {
+                    Text("店舗", fontWeight = FontWeight.Bold, fontSize = 16.sp)
+                    Spacer(Modifier.height(8.dp))
+                    InfoRow("店舗名", s.name)
+                    InfoRow("店舗コード", s.code)
+                    InfoRow("状態", statusLabel(s.status))
+                    if (s.is_default) InfoRow("区分", "既定店舗")
+                }
+            }
+        }
 
         Spacer(Modifier.height(20.dp))
         Surface(
