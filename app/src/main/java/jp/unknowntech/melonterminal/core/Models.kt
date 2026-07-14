@@ -33,6 +33,9 @@ data class UiError(val title: String, val detail: String?)
 /** Map a server error `code` (or a fallback message) to friendly Japanese text. */
 fun localizeError(code: String?, fallback: String?): UiError = when (code) {
     "INSUFFICIENT_FUNDS" -> UiError("残高が不足しています", "チャージしてからお試しください")
+    // The card's IDm is randomized, so it cannot identify an account. Nothing the
+    // cashier or the holder can do — the card itself is unusable here.
+    "UNSUPPORTED_CARD" -> UiError("対応していないカードです", "このカードは利用できません")
     "CREDIT_LIMIT_EXCEEDED" -> UiError("チャージできません", "加盟店の与信限度を超えています")
     "REFUND_EXCEEDS_PAYMENT" -> UiError("返金できません", "返金可能額を超えています")
     "UNAUTHORIZED" -> UiError("端末の設定エラー", "API キーを確認してください")
