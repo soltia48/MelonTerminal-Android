@@ -109,6 +109,17 @@ sdk.dir=/path/to/Android/Sdk
 - **決済手数料率 / 与信限度 / チャージ可能額(余力)**
 - 加盟店コード・名称・状態・ID・登録日時
 
+### POS 連動モード
+
+テンキーによるスタンドアロン操作に加え、**POS レジと LAN 連動**するモードがあります。
+上部の「🖥 POS連動」から切り替えます。切り替えると端末は「待受中」画面になり、同一LAN上のPOSからのコマンド(支払 / チャージ / 残高照会 / 返金)を待ち受けます。
+
+- 端末の検索は **UDP ブロードキャスト**、コマンドおよび状態取得は **TCP + JSON**で行います。
+- カードのタッチが必要な業務では、コマンドを受けて端末が「カードをかざしてください」表示になり、その結果をPOSが受け取ります。
+- 端末側・POS側のどちらからでも処理をキャンセルできます。
+
+プロトコルの詳細は **[docs/POS-Protocol.md](docs/POS-Protocol.md)** を参照してください。
+
 ---
 
 ## セキュリティ
@@ -131,13 +142,18 @@ app/src/main/java/jp/unknowntech/melonterminal/
   net/
     Dto.kt                 API の JSON DTO(kotlinx.serialization)
     MelonClient.kt         melon-server クライアント(OkHttp)
+  pos/
+    PosProtocol.kt         POS 連動プロトコルの DTO / エンベロープ / ハンドラ IF
+    PosServer.kt           LAN サーバ(UDP 端末検索 + TCP コマンド)
   core/
-    Settings.kt            サーバ URL / API キーの保存
+    Settings.kt            サーバ URL / API キーの保存 / POS連動用の端末名称・ID保存
     Models.kt              Op / エラー分類 / 表示用エラー
     CardFlow.kt            相互認証の中継フロー
   ui/
-    TerminalViewModel.kt   画面状態と操作の実行
+    TerminalViewModel.kt   画面状態と操作の実行(POS 連動の取引状態管理を含む)
     TerminalScreen.kt      操作画面・テンキー・各種シート
+    PosScreen.kt           POS 連動モードの画面(待受中 / 決済画面)
+    PosModels.kt           POS モードの UI 状態モデル
     SettingsScreen.kt      サーバ URL / API キー設定
     Format.kt              金額 / ID / 日付の整形
 ```

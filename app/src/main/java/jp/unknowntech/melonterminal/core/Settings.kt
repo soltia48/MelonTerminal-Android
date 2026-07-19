@@ -1,6 +1,7 @@
 package jp.unknowntech.melonterminal.core
 
 import android.content.Context
+import java.util.UUID
 
 /**
  * Persisted terminal configuration: the server URL and the merchant API key. Stored
@@ -24,10 +25,28 @@ class Settings(context: Context) {
     val isConfigured: Boolean
         get() = !apiKey.isNullOrBlank()
 
+    /**
+     * A stable identifier for this terminal, announced to POS registers during LAN
+     * discovery. Generated once on first read and persisted; never leaves the LAN.
+     */
+    val terminalId: String
+        get() = prefs.getString(KEY_TERMINAL_ID, null) ?: UUID.randomUUID().toString().also {
+            prefs.edit().putString(KEY_TERMINAL_ID, it).apply()
+        }
+
+    /** Human-readable terminal name shown to POS during discovery. */
+    var terminalName: String
+        get() = prefs.getString(KEY_TERMINAL_NAME, DEFAULT_TERMINAL_NAME)!!
+            .ifBlank { DEFAULT_TERMINAL_NAME }
+        set(value) = prefs.edit().putString(KEY_TERMINAL_NAME, value.trim()).apply()
+
     companion object {
         const val DEFAULT_SERVER = "https://melon.unknowntech.jp"
+        const val DEFAULT_TERMINAL_NAME = "Melon 端末"
         private const val PREFS = "melon_terminal"
         private const val KEY_SERVER = "server_url"
         private const val KEY_API_KEY = "api_key"
+        private const val KEY_TERMINAL_ID = "terminal_id"
+        private const val KEY_TERMINAL_NAME = "terminal_name"
     }
 }

@@ -68,13 +68,22 @@ fun TerminalScreen(vm: TerminalViewModel) {
         MerchantScreen(vm, onClose = { showMerchant = false })
         return
     }
+    // POS-linked mode takes over the whole screen with its own kiosk face.
+    if (state.mode == AppMode.POS) {
+        PosScreen(vm)
+        return
+    }
 
     Column(
         Modifier
             .fillMaxSize()
             .safeDrawingPadding()
     ) {
-        Header(onMerchant = { showMerchant = true }, onSettings = { showSettings = true })
+        Header(
+            onPos = vm::enterPosMode,
+            onMerchant = { showMerchant = true },
+            onSettings = { showSettings = true },
+        )
         if (state.nfc != NfcState.ENABLED) NfcBanner(state.nfc)
         OpTabs(state.op) { vm.setOp(it) }
         AmountArea(state, Modifier.weight(1f))
@@ -159,7 +168,7 @@ private fun ArmedSheet(op: Op, amount: Long, onCancel: () -> Unit) {
 }
 
 @Composable
-private fun Header(onMerchant: () -> Unit, onSettings: () -> Unit) {
+private fun Header(onPos: () -> Unit, onMerchant: () -> Unit, onSettings: () -> Unit) {
     Row(
         Modifier
             .fillMaxWidth()
@@ -177,6 +186,7 @@ private fun Header(onMerchant: () -> Unit, onSettings: () -> Unit) {
             Text("Melon 端末", fontWeight = FontWeight.Bold, fontSize = 18.sp)
         }
         Row(verticalAlignment = Alignment.CenterVertically) {
+            TextButton(onClick = onPos) { Text("🖥 POS連動") }
             TextButton(onClick = onMerchant) { Text("🏬 加盟店") }
             TextButton(onClick = onSettings) { Text("⚙ 設定") }
         }
