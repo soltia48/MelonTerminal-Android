@@ -4,6 +4,10 @@
 
     <uses-permission android:name="android.permission.NFC" />
     <uses-permission android:name="android.permission.INTERNET" />
+    <!-- POS-linked mode: accept broadcast discovery packets on the LAN. Holding a
+         multicast lock ensures broadcast UDP is delivered on devices that filter it. -->
+    <uses-permission android:name="android.permission.ACCESS_WIFI_STATE" />
+    <uses-permission android:name="android.permission.CHANGE_WIFI_MULTICAST_STATE" />
     <!-- The card is read with the foreground reader; NFC is used but not strictly
          required to install (the settings screen still works without it). -->
     <uses-feature
